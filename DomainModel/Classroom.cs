@@ -1,4 +1,4 @@
-﻿namespace SchoolApi
+﻿namespace DomainModel
 {
     public class Classroom
     {
