@@ -1,4 +1,5 @@
-﻿using DomainModel;
+﻿using Dal;
+using DomainModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,36 +9,21 @@ namespace SchoolApi.Controllers
     [ApiController]
     public class ClassroomController : ControllerBase
     {
+        private readonly SchoolContext context;
+
+        public ClassroomController(SchoolContext context)
+        {
+            this.context = context;
+
+            //this.context.Database.EnsureDeleted();
+            this.context.Database.EnsureCreated();
+        }
+
         // GET : /Classroom
         [HttpGet]
         public IActionResult GetClassrooms()
         {
-            List<Classroom> classrooms = new List<Classroom>()
-            {
-                new Classroom()
-                {
-                    ClassroomID = 1,
-                    Name = "Salle Bill Gates",
-                    Floor = 2,
-                    Corridor = "Rouge"
-                },
-                new Classroom()
-                {
-                    ClassroomID = 2,
-                    Name = "Salle Scott Hanselman",
-                    Floor = 4,
-                    Corridor = "Bleu"
-                },
-                new Classroom()
-                {
-                    ClassroomID = 3,
-                    Name = "Salle Satya Nadella",
-                    Floor = 3,
-                    Corridor = "Rouge"
-                }
-            };
-
-            return Ok(classrooms);
+            return Ok(this.context.Classrooms.ToList());
         }
 
         // GET /Classroom/5
@@ -48,13 +34,10 @@ namespace SchoolApi.Controllers
                 return BadRequest();
 
             // Récupération de l’objet
-            Classroom classroom = new Classroom()
-            {
-                ClassroomID = id.Value,
-                Name = "Salle Bill Gates",
-                Floor = 2,
-                Corridor = "Rouge"
-            };
+            var classroom = this.context.Classrooms.Find(id);
+
+            if(classroom == null)
+                return NotFound();
 
             return Ok(classroom);
         }
@@ -67,7 +50,8 @@ namespace SchoolApi.Controllers
                 return BadRequest();
 
             // insertion de notre objet
-            classroom.ClassroomID = 5;
+            this.context.Classrooms.Add(classroom);
+            this.context.SaveChanges();
 
             return Created($"Classroom/{classroom.ClassroomID}", classroom);
         }
@@ -80,6 +64,8 @@ namespace SchoolApi.Controllers
                 return BadRequest();
 
             // modification de l'objet
+            this.context.Classrooms.Update(classroom);
+            this.context.SaveChanges();
 
             return NoContent();
         }
@@ -91,14 +77,11 @@ namespace SchoolApi.Controllers
             if (id == null)
                 return BadRequest();
 
+            var classroom = this.context.Classrooms.Single(c => c.ClassroomID == id.Value);
+
             // suppression de l'objet
-            Classroom classroom = new Classroom()
-            {
-                ClassroomID = id.Value,
-                Name = "Salle Bill Gates",
-                Floor = 2,
-                Corridor = "Rouge"
-            };
+            this.context.Classrooms.Remove(classroom);
+            this.context.SaveChanges();
 
             return Ok(classroom);
         }
